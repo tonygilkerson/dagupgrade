@@ -1,0 +1,64 @@
+import dagger
+from dagger import dag, function, object_type, check, DefaultPath, Doc, Ignore, field
+from typing import Annotated, TypeAlias
+
+SrcDir = Annotated[
+    dagger.Directory,
+    DefaultPath("/"),
+    Doc("The source directory of the project"),
+    Ignore([".venv", "**/__pycache__", ".dagger"]),
+]
+
+@object_type
+class ProjectSource:
+    """A reusable wrapper for the project source with standard ignores."""  
+    # We define the directory logic ONCE here
+    root: Annotated[
+        dagger.Directory,
+        DefaultPath("/"),
+        Ignore([".venv", "**/__pycache__", ".dagger"]),
+        Doc("The source directory of the project"),
+    ] = field()
+
+@object_type
+class Dagupgrade:
+
+    @check
+    @function
+    def myfn(self, src: SrcDir) -> dagger.Container:
+        """list src directory"""
+        return (
+            dag.container()
+                .from_("alpine:latest")
+                .with_directory("/src", src)
+                .with_exec(["ls", "/src"])
+        )
+
+    @check
+    @function
+    def inlinefix(self,
+            src: Annotated[
+            dagger.Directory,
+            DefaultPath("/"),
+            Doc("The source directory of the project"),
+            Ignore([".venv", "**/__pycache__", ".dagger"]),
+        ]) -> dagger.Container:
+        """list src directory"""
+        return (
+            dag.container()
+                .from_("alpine:latest")
+                .with_directory("/src", src)
+                .with_exec(["ls", "/src"])
+        )
+
+    @check
+    @function
+    def typefix(self,
+            src: ProjectSource) -> dagger.Container:
+        """list src directory"""
+        return (
+            dag.container()
+                .from_("alpine:latest")
+                .with_directory("/src", src)
+                .with_exec(["ls", "/src"])
+        )

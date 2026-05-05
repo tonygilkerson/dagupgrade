@@ -1,0 +1,24 @@
+import dagger
+from dagger import dag, function, object_type, check, DefaultPath, Doc, Ignore
+from typing import Annotated
+
+SrcDir = Annotated[
+    dagger.Directory,
+    DefaultPath("/"),
+    Doc("The source directory of the project"),
+    Ignore([".venv", "**/__pycache__", ".dagger"]),
+]
+
+@object_type
+class Dagupgrade:
+
+    @check
+    @function
+    def myfn(self, src: SrcDir) -> dagger.Container:
+        """list src directory"""
+        return (
+            dag.container()
+                .from_("alpine:latest")
+                .with_directory("/src", src)
+                .with_exec(["ls", "/src"])
+        )
